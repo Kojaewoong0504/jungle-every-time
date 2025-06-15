@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.app.domain.auth import router as auth_router
 from src.app.domain.user import router as user_router
+from src.app.domain.post import router as post_router
 from src.app.config.config import settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ app.add_middleware(
 
 app.include_router(router=auth_router, prefix=settings.API_V1_STR)
 app.include_router(router=user_router, prefix=settings.API_V1_STR)
-
+app.include_router(router=post_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def health_check():

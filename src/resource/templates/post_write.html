@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+</head>
+<body class="p-4">
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-semibold mb-4">새 글 작성</h1>
+    <form id="post-form" class="space-y-4">
+        <div>
+            <label class="block mb-1 text-sm">게시판</label>
+            <select id="board" class="border rounded w-full p-2">
+                {% for board in boards %}
+                <option value="{{ board.id }}">{{ board.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="title" class="block mb-1 text-sm">제목</label>
+            <input id="title" type="text" class="border rounded w-full p-2" required>
+        </div>
+        <div>
+            <label for="content" class="block mb-1 text-sm">내용</label>
+            <textarea id="content" rows="10" class="border rounded w-full p-2" required></textarea>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">등록</button>
+    </form>
+</div>
+<script>
+    document.getElementById('post-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const boardId = parseInt(document.getElementById('board').value);
+        const response = await fetch('/api/v1/post/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: title, content: content, board_id: boardId})
+        });
+        if (response.ok) {
+            window.location.href = '/api/v1/auth/page/main';
+        } else {
+            alert('글 작성에 실패했습니다.');
+        }
+    });
+</script>
+</body>
+</html>
