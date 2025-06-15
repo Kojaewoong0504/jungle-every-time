@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 로그인</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com/3.4.16">
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4F46E5",
+                        secondary: "#6366F1",
+                    },
+                    borderRadius: {
+                        none: "0px",
+                        sm: "4px",
+                        DEFAULT: "8px",
+                        md: "12px",
+                        lg: "16px",
+                        xl: "20px",
+                        "2xl": "24px",
+                        "3xl": "32px",
+                        full: "9999px",
+                        button: "8px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        :where([class^="ri-"])::before {
+            content: "\f3c2";
+        }
+
+        body {
+            background-color: #f9fafb;
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+        }
+
+        .login-card {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-field {
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: #4F46E5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        .custom-checkbox {
+            position: relative;
+            height: 18px;
+            width: 18px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox.checked {
+            background: #4F46E5;
+            border-color: #4F46E5;
+        }
+
+        .custom-checkbox.checked::after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 3px;
+            width: 5px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+
+        .divider {
+            width: 1px;
+            height: 14px;
+            background-color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-7xl bg-white min-h-screen">
+    <header class="border-b">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="font-['Pacifico'] text-2xl text-gray-800">logo</h1>
+            <!-- 🔽 로그아웃 버튼 -->
+            <a href="/api/v1/auth/logout"
+               class="text-sm text-gray-600 hover:text-primary border px-3 py-1 rounded-lg">
+                로그아웃
+            </a>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-6">
+        <div class="flex flex-col space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-semibold text-gray-800">게시판</h2>
+                <button class="bg-primary text-white px-4 py-2 rounded-button flex items-center gap-2">
+                    <i class="ri-add-line"></i>
+                    글쓰기
+                </button>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="flex gap-4 border-b pb-4">
+                    <button class="px-4 py-2 rounded-full bg-primary text-white" id="tab-all">자유게시판</button>
+                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-jungle">정글</button>
+                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-gametech">게임테크랩
+                    </button>
+                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-game">게임랩</button>
+                </div>
+                <div class="py-4" id="generation-selector" style="display: none;">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">기수 선택:</span>
+                        <div class="relative inline-block">
+                            <button id="generation-button"
+                                    class="bg-white border rounded px-4 py-2 text-sm flex items-center gap-2">
+                                <span id="selected-generation">선택</span>
+                                <i class="ri-arrow-down-s-line"></i>
+                            </button>
+                            <div id="generation-dropdown"
+                                 class="hidden absolute top-full left-0 mt-1 w-40 bg-white border rounded-lg shadow-lg py-2 z-10">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <div class="bg-white rounded-lg border">
+                        <div class="grid grid-cols-12 text-sm font-medium text-gray-600 border-b py-3 px-4">
+                            <div class="col-span-6">제목</div>
+                            <div class="col-span-2 text-center">작성자</div>
+                            <div class="col-span-2 text-center">작성일</div>
+                            <div class="col-span-1 text-center">조회</div>
+                            <div class="col-span-1 text-center">추천</div>
+                        </div>
+                        <div id="board-list" class="divide-y">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script id="boardHandler">
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = ["all", "jungle", "gametech", "game"];
+        const tabElements = tabs.map((tab) => document.getElementById(`tab-${tab}`));
+        const generationSelector = document.getElementById("generation-selector");
+        const generationButton = document.getElementById("generation-button");
+        const generationDropdown = document.getElementById("generation-dropdown");
+        const boardList = document.getElementById("board-list");
+        let currentTab = "all";
+        let selectedGeneration = null;
+
+        function generateDummyPosts() {
+            const posts = [];
+            const authors = ["김서연", "이준호", "박지민", "최현우", "정다은"];
+            const titles = [
+                "프로젝트 진행 상황 공유드립니다",
+                "코드 리뷰 요청드립니다",
+                "새로운 기술 스택 제안",
+                "팀 미팅 일정 조율",
+                "문제 해결 방법 공유",
+            ];
+            for (let i = 0; i < 10; i++) {
+                const randomTitle = titles[Math.floor(Math.random() * titles.length)];
+                const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
+                const randomDate = new Date(
+                    Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000,
+                );
+                const formattedDate = `${randomDate.getMonth() + 1}.${randomDate.getDate()}`;
+                posts.push(`
+<div class="grid grid-cols-12 text-sm py-3 px-4 hover:bg-gray-50">
+<div class="col-span-6">
+<a href="#" class="hover:text-primary">${randomTitle}</a>
+</div>
+<div class="col-span-2 text-center text-gray-600">${randomAuthor}</div>
+<div class="col-span-2 text-center text-gray-600">${formattedDate}</div>
+<div class="col-span-1 text-center text-gray-600">${Math.floor(Math.random() * 100)}</div>
+<div class="col-span-1 text-center text-gray-600">${Math.floor(Math.random() * 20)}</div>
+</div>
+`);
+            }
+            return posts.join("");
+        }
+
+        function updateBoardList() {
+            boardList.innerHTML = generateDummyPosts();
+        }
+
+        function generateGenerations(count) {
+            return Array.from({length: count}, (_, i) => i + 1)
+                .map(
+                    (num) =>
+                        `<button class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" data-generation="${num}">${num}기</button>`,
+                )
+                .join("");
+        }
+
+        function updateGenerationDropdown() {
+            if (["jungle", "gametech", "game"].includes(currentTab)) {
+                generationSelector.style.display = "block";
+                generationDropdown.innerHTML = generateGenerations(8);
+            } else {
+                generationSelector.style.display = "none";
+            }
+        }
+
+        tabElements.forEach((tab) => {
+            tab.addEventListener("click", function () {
+                tabElements.forEach((t) => {
+                    t.classList.remove("bg-primary", "text-white");
+                    t.classList.add("text-gray-600", "hover:bg-gray-100");
+                });
+                this.classList.add("bg-primary", "text-white");
+                this.classList.remove("text-gray-600", "hover:bg-gray-100");
+                currentTab = this.id.replace("tab-", "");
+                updateGenerationDropdown();
+                updateBoardList();
+            });
+        });
+        generationButton.addEventListener("click", function () {
+            generationDropdown.classList.toggle("hidden");
+        });
+        document.addEventListener("click", function (event) {
+            if (
+                !generationButton.contains(event.target) &&
+                !generationDropdown.contains(event.target)
+            ) {
+                generationDropdown.classList.add("hidden");
+            }
+        });
+        generationDropdown.addEventListener("click", function (event) {
+            if (event.target.hasAttribute("data-generation")) {
+                const generation = event.target.getAttribute("data-generation");
+                document.getElementById("selected-generation").textContent =
+                    `${generation}기`;
+                selectedGeneration = generation;
+                generationDropdown.classList.add("hidden");
+                updateBoardList();
+            }
+        });
+        updateBoardList();
+    });
+</script>
+
+</body>
+</html>

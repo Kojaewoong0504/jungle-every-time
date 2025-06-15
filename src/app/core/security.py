@@ -1,7 +1,7 @@
-import uuid
+from uuid import uuid4
 from typing import Optional
 
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
 from jose import ExpiredSignatureError, jwt, JWTError
@@ -15,7 +15,7 @@ from argon2.exceptions import InvalidHash, VerifyMismatchError
 from src.app.domain.auth.crud import auth_crud as crud
 
 pwd_context = PasswordHasher()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/prod/signin")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 ALGORITHM = "HS256"
 
 
@@ -35,7 +35,7 @@ def create_access_token(
         "exp": int(expire.timestamp()),  # expiration (timestamp)
         "iss": issuer,  # issuer
         "aud": audience,
-        "jti": str(uuid.uuid4()),
+        "jti": str(uuid4()),
     }
     encoded_jwt = jwt.encode(payload, key, algorithm=ALGORITHM)
     return encoded_jwt
@@ -54,11 +54,21 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def decode_token(token: str, key: str = settings.SECRET_KEY):
+def decode_token(
+        token: str,
+        key: str = settings.SECRET_KEY,
+        issuer: str = "Jungle_every_time",
+        audience: str = "Jungle_every_time"
+):
     try:
-        payload = jwt.decode(token, key, algorithms=[ALGORITHM])
-        data = payload.get("sub")
-        return data
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=[ALGORITHM],
+            audience=audience,
+            issuer=issuer
+        )
+        return payload.get("sub")
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token is expired")
     except JWTError:
@@ -74,3 +84,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         return user
     except JWTError:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+
+async def get_current_user_from_cookie(request: Request, db: Session):
+    token = request.cookies.get("access_token")
+    if not token or not token.startswith("Bearer "):
+        return None
+    try:
+        email = decode_token(token[7:])  # "Bearer " prefix 제거
+        user = await crud.get_user_by_email(db, email=email)
+        return user
+    except JWTError:
+        return None
