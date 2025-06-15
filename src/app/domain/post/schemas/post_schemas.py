@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
@@ -13,5 +14,8 @@ class PostResponse(BaseModel):
     content: str
     board_id: int
     user_id: int
+    likes: int
+    views: int
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

@@ -10,3 +10,7 @@ async def create_post(db: Session, post_request: schemas.PostCreateRequest, user
     if not post:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create post")
     return post
+
+
+async def get_posts(db: Session, topic: str | None = None):
+    return await crud.get_posts(db, topic)
