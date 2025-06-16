@@ -49,6 +49,11 @@ class Post(Base):
     comments = relationship("Comment", back_populates="post")
     post_likes = relationship("PostLike", back_populates="post")
 
+    @property
+    def nickname(self) -> str | None:
+        """Return the nickname of the post author."""
+        return self.user.nickname if self.user else None
+
 
 class Comment(Base):
     __tablename__ = 'comments'

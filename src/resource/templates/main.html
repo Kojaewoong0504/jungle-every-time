@@ -114,19 +114,14 @@
         <div class="flex flex-col space-y-6">
             <div class="flex items-center justify-between">
                 <h2 class="text-2xl font-semibold text-gray-800">게시판</h2>
-                <a href="/api/v1/post/page/write" class="bg-primary text-white px-4 py-2 rounded-button flex items-center gap-2">
+                <a href="/api/v1/post/page/write"
+                   class="bg-primary text-white px-4 py-2 rounded-button flex items-center gap-2">
                     <i class="ri-add-line"></i>
                     글쓰기
                 </a>
             </div>
             <div class="bg-gray-50 p-4 rounded-lg">
-                <div class="flex gap-4 border-b pb-4">
-                    <button class="px-4 py-2 rounded-full bg-primary text-white" id="tab-all">자유게시판</button>
-                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-jungle">정글</button>
-                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-gametech">게임테크랩
-                    </button>
-                    <button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-game">게임랩</button>
-                </div>
+                <div id="board-tabs" class="flex gap-4 border-b pb-4"></div>
                 <div class="py-4" id="generation-selector" style="display: none;">
                     <div class="flex items-center gap-2">
                         <span class="text-sm text-gray-600">기수 선택:</span>
@@ -160,9 +155,10 @@
     </main>
 </div>
 <script id="boardHandler">
-    document.addEventListener("DOMContentLoaded", function () {
-        const tabs = ["all", "jungle", "gametech", "game"];
-        const tabElements = tabs.map((tab) => document.getElementById(`tab-${tab}`));
+    document.addEventListener("DOMContentLoaded", async function () {
+        const boardTabsContainer = document.getElementById("board-tabs");
+        let tabs = ["all"];
+        let tabElements = [];
         const generationSelector = document.getElementById("generation-selector");
         const generationButton = document.getElementById("generation-button");
         const generationDropdown = document.getElementById("generation-dropdown");
@@ -195,7 +191,7 @@
   <div class="col-span-6">
     <a href="#" class="hover:text-primary">${post.title}</a>
   </div>
-  <div class="col-span-2 text-center text-gray-600">${post.user_id}</div>
+  <div class="col-span-2 text-center text-gray-600">${post.nickname ?? post.user_id}</div>
   <div class="col-span-2 text-center text-gray-600">${date}</div>
   <div class="col-span-1 text-center text-gray-600">${post.views}</div>
   <div class="col-span-1 text-center text-gray-600">${post.likes}</div>
@@ -222,19 +218,42 @@
             }
         }
 
-        tabElements.forEach((tab) => {
-            tab.addEventListener("click", function () {
-                tabElements.forEach((t) => {
-                    t.classList.remove("bg-primary", "text-white");
-                    t.classList.add("text-gray-600", "hover:bg-gray-100");
+        function attachTabEvents() {
+            tabElements.forEach((tab) => {
+                tab.addEventListener("click", function () {
+                    tabElements.forEach((t) => {
+                        t.classList.remove("bg-primary", "text-white");
+                        t.classList.add("text-gray-600", "hover:bg-gray-100");
+                    });
+                    this.classList.add("bg-primary", "text-white");
+                    this.classList.remove("text-gray-600", "hover:bg-gray-100");
+                    currentTab = this.id.replace("tab-", "");
+                    updateGenerationDropdown();
+                    updateBoardList();
                 });
-                this.classList.add("bg-primary", "text-white");
-                this.classList.remove("text-gray-600", "hover:bg-gray-100");
-                currentTab = this.id.replace("tab-", "");
-                updateGenerationDropdown();
-                updateBoardList();
             });
-        });
+        }
+
+        async function setupBoardTabs() {
+            try {
+                const res = await fetch("/api/v1/board/");
+                const boards = res.ok ? await res.json() : [];
+                const tabHtml = [
+                    '<button class="px-4 py-2 rounded-full bg-primary text-white" id="tab-all">전체</button>',
+                    ...boards.map(
+                        (b) =>
+                            `<button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-${b.topic}">${b.title}</button>`,
+                    ),
+                ].join("");
+                boardTabsContainer.innerHTML = tabHtml;
+                tabs = ["all", ...boards.map((b) => b.topic)];
+                tabElements = tabs.map((tab) => document.getElementById(`tab-${tab}`));
+                attachTabEvents();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         generationButton.addEventListener("click", function () {
             generationDropdown.classList.toggle("hidden");
         });
@@ -256,6 +275,7 @@
                 updateBoardList();
             }
         });
+        await setupBoardTabs();
         updateBoardList();
     });
 </script>

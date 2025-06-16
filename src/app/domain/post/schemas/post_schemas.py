@@ -14,6 +14,7 @@ class PostResponse(BaseModel):
     content: str
     board_id: int
     user_id: int
+    nickname: str | None = None
     likes: int
     views: int
     created_at: datetime
