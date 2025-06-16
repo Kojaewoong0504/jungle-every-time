@@ -86,7 +86,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
-async def get_current_user_from_cookie(request: Request, db: Session):
+async def get_current_user_from_cookie(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("access_token")
     if not token or not token.startswith("Bearer "):
         return None
