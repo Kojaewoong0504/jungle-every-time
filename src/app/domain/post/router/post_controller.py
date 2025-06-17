@@ -38,3 +38,17 @@ async def read_posts(db: DB, topic: str | None = None):
         return [schemas.PostResponse.model_validate(p) for p in posts]
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{post_id}", response_model=schemas.PostResponse)
+async def read_post(post_id: int, db: DB) -> schemas.PostResponse:
+    try:
+        post = await service.get_post(db, post_id)
+        db.commit()
+        return schemas.PostResponse.model_validate(post)
+    except HTTPException as e:
+        db.rollback()
+        raise e
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

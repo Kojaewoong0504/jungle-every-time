@@ -21,3 +21,8 @@ async def get_posts(db: Session, topic: str | None = None) -> list[Post]:
     if topic:
         query = query.join(Board).filter(Board.topic == topic)
     return query.all()
+
+
+async def get_post(db: Session, post_id: int) -> Post | None:
+    """Return a post by its id."""
+    return db.query(Post).filter(Post.id == post_id).first()

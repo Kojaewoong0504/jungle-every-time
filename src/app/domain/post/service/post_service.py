@@ -14,3 +14,11 @@ async def create_post(db: Session, post_request: schemas.PostCreateRequest, user
 
 async def get_posts(db: Session, topic: str | None = None):
     return await crud.get_posts(db, topic)
+
+
+async def get_post(db: Session, post_id: int):
+    post = await crud.get_post(db, post_id)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    post.views += 1
+    return post
