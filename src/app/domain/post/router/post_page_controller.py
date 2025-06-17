@@ -3,6 +3,7 @@ from typing import Annotated
 
 from starlette.responses import HTMLResponse
 from fastapi import APIRouter, Depends, Request
+import json
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
@@ -37,9 +38,23 @@ async def post_detail_page(request: Request, post_id: int, db: DB):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return RedirectResponse("/api/v1/auth/page/main")
-    post.views += 1
-    db.commit()
-    return template.TemplateResponse(
+
+    viewed_cookie = request.cookies.get("viewed_posts")
+    viewed_posts = []
+    if viewed_cookie:
+        try:
+            viewed_posts = json.loads(viewed_cookie)
+        except Exception:
+            viewed_posts = []
+
+    if post_id not in viewed_posts:
+        post.views += 1
+        viewed_posts.append(post_id)
+        db.commit()
+
+    response = template.TemplateResponse(
         "post_detail.html",
         {"request": request, "user": user, "post": post},
     )
+    response.set_cookie("viewed_posts", json.dumps(viewed_posts))
+    return response

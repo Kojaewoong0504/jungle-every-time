@@ -43,7 +43,7 @@ async def read_posts(db: DB, topic: str | None = None):
 @router.get("/{post_id}", response_model=schemas.PostResponse)
 async def read_post(post_id: int, db: DB) -> schemas.PostResponse:
     try:
-        post = await service.get_post(db, post_id)
+        post = post = await service.get_post(db, post_id, count_view=True)
         db.commit()
         return schemas.PostResponse.model_validate(post)
     except HTTPException as e:

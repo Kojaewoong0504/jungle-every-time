@@ -17,14 +17,21 @@ VALID_USER = Annotated[User, Depends(get_current_user)]
 COOKIE_USER = Annotated[User, Depends(get_current_user_from_cookie)]
 
 
-@router.post("/{post_id}", response_model=schemas.PostLikeResponse)
-async def toggle_like(post_id: int, db: DB, current_user: COOKIE_USER) -> schemas.PostLikeResponse:
+@router.post("/{post_id}", response_model=schemas.PostLikeToggleResponse)
+async def toggle_like(post_id: int, db: DB, current_user: COOKIE_USER) -> schemas.PostLikeToggleResponse:
     if not current_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
         like = await service.toggle_like(db, post_id, current_user.id)
         db.commit()
-        return schemas.PostLikeResponse.model_validate(like)
+        return schemas.PostLikeToggleResponse(
+            id=like.id,
+            user_id=like.user_id,
+            posts_id=like.posts_id,
+            status=like.status,
+            likes=like.post.likes,
+            created_at=like.created_at,
+        )
     except HTTPException as e:
         db.rollback()
         raise e

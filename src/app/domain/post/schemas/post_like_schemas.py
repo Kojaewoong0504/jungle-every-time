@@ -10,3 +10,8 @@ class PostLikeResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PostLikeToggleResponse(PostLikeResponse):
+    """Response returned when toggling a like."""
+    likes: int
