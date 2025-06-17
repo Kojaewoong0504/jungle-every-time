@@ -41,7 +41,7 @@ async def toggle_like(post_id: int, db: DB, current_user: COOKIE_USER) -> schema
 
 
 @router.get("/me", response_model=list[schemas.PostLikeResponse])
-async def read_my_likes(db: DB, current_user: VALID_USER) -> list[schemas.PostLikeResponse]:
+async def read_my_likes(db: DB, current_user: COOKIE_USER) -> list[schemas.PostLikeResponse]:
     try:
         likes = await service.get_likes_by_user(db, current_user.id)
         return [schemas.PostLikeResponse.model_validate(l) for l in likes]
@@ -50,7 +50,7 @@ async def read_my_likes(db: DB, current_user: VALID_USER) -> list[schemas.PostLi
 
 
 @router.get("/me/posts", response_model=list[post_schemas.PostResponse])
-async def read_my_like_posts(db: DB, current_user: VALID_USER):
+async def read_my_like_posts(db: DB, current_user: COOKIE_USER):
     try:
         posts = await service.get_posts_liked_by_user(db, current_user.id)
         return [post_schemas.PostResponse.model_validate(p) for p in posts]

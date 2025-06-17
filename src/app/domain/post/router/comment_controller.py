@@ -41,7 +41,7 @@ async def read_comments(post_id: int, db: DB) -> list[schemas.CommentResponse]:
 
 
 @router.get("/me", response_model=list[schemas.CommentResponse])
-async def read_my_comments(db: DB, current_user: VALID_USER) -> list[schemas.CommentResponse]:
+async def read_my_comments(db: DB, current_user: COOKIE_USER) -> list[schemas.CommentResponse]:
     try:
         comments = await service.get_comments_by_user(db, current_user.id)
         return [schemas.CommentResponse.model_validate(c) for c in comments]
@@ -50,7 +50,7 @@ async def read_my_comments(db: DB, current_user: VALID_USER) -> list[schemas.Com
 
 
 @router.get("/me/posts", response_model=list[post_schemas.PostResponse])
-async def read_posts_commented_me(db: DB, current_user: VALID_USER):
+async def read_posts_commented_me(db: DB, current_user: COOKIE_USER):
     try:
         posts = await service.get_posts_commented_by_user(db, current_user.id)
         return [post_schemas.PostResponse.model_validate(p) for p in posts]
