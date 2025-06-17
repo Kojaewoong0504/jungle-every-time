@@ -68,6 +68,10 @@ class Comment(Base):
     user = relationship("User", back_populates="comments")
     post = relationship("Post", back_populates="comments")
 
+    @property
+    def post_title(self) -> str | None:
+        return self.post.title if self.post else None
+
 
 class PostLike(Base):
     __tablename__ = 'post_likes'

@@ -157,7 +157,7 @@
 <script id="boardHandler">
     document.addEventListener("DOMContentLoaded", async function () {
         const boardTabsContainer = document.getElementById("board-tabs");
-        let tabs = ["all"];
+        let tabs = ["all", "my-likes", "my-comments"];
         let tabElements = [];
         const generationSelector = document.getElementById("generation-selector");
         const generationButton = document.getElementById("generation-button");
@@ -167,9 +167,16 @@
         let selectedGeneration = null;
 
         async function fetchPosts() {
-            let url = "/api/v1/post/";
-            if (currentTab !== "all") {
-                url += `?topic=${currentTab}`;
+            let url;
+            if (currentTab === "my-likes") {
+                url = "/api/v1/post/me/posts";
+            } else if (currentTab === "my-comments") {
+                url = "/api/v1/post/me/posts";
+            } else {
+                url = "/api/v1/post/";
+                if (currentTab !== "all") {
+                    url += `?topic=${currentTab}`;
+                }
             }
             const res = await fetch(url);
             if (!res.ok) {
@@ -240,13 +247,15 @@
                 const boards = res.ok ? await res.json() : [];
                 const tabHtml = [
                     '<button class="px-4 py-2 rounded-full bg-primary text-white" id="tab-all">전체</button>',
+                    '<button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-my-likes">내 좋아요</button>',
+                    '<button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-my-comments">내 댓글</button>',
                     ...boards.map(
                         (b) =>
                             `<button class="px-4 py-2 rounded-full text-gray-600 hover:bg-gray-100" id="tab-${b.topic}">${b.title}</button>`,
                     ),
                 ].join("");
                 boardTabsContainer.innerHTML = tabHtml;
-                tabs = ["all", ...boards.map((b) => b.topic)];
+                tabs = ["all", "my-likes", "my-comments", ...boards.map((b) => b.topic)];
                 tabElements = tabs.map((tab) => document.getElementById(`tab-${tab}`));
                 attachTabEvents();
             } catch (e) {
