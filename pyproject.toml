@@ -22,10 +22,21 @@ dependencies = [
     "jinja2 (>=3.1.6,<4.0.0)",
     "bcrypt (>=4.3.0,<5.0.0)",
     "argon2-cffi (>=25.1.0,<26.0.0)",
-    "python-multipart (>=0.0.20,<0.0.21)"
+    "python-multipart (>=0.0.20,<0.0.21)",
+    "asgi-lifespan (>=2.1.0,<3.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-asyncio = "^1.0.0"
+pytest-cov = "^6.2.1"
+pytest-mock = "^3.14.1"
+pytest-xdist = "^3.7.0"
+pytest-profiling = "^1.8.1"
+
